@@ -1,8 +1,8 @@
 # TITA CLI 🚀
 
-[![npm version](https://badge.fury.io/js/@tu-username%2Ftita-cli.svg)](https://badge.fury.io/js/@tu-username%2Ftita-cli)
+[![npm version](https://badge.fury.io/js/@malopez1578%2Ftita-cli.svg)](https://badge.fury.io/js/@malopez1578%2Ftita-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/tu-username/tita-cli)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/malopez1578/tita-cli)
 [![TypeScript](https://img.shields.io/badge/typescript-5.8-blue.svg)](https://www.typescriptlang.org/)
 
 Una herramienta de línea de comandos profesional para crear proyectos desde templates de GitLab con instalación automática de dependencias, gestión inteligente de caché y configuración persistente.
@@ -84,7 +84,7 @@ tita init
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/tu-username/tita-cli.git
+git clone https://github.com/malopez1578/tita-cli.git
 cd tita-cli
 
 # Instalar dependencias
@@ -266,7 +266,7 @@ yarn clean
 
 ## 🔄 Versionado
 
-Este proyecto usa [SemVer](http://semver.org/) para el versionado. Para ver las versiones disponibles, consulta los [tags en este repositorio](https://github.com/tu-username/tita-cli/tags).
+Este proyecto usa [SemVer](http://semver.org/) para el versionado. Para ver las versiones disponibles, consulta los [tags en este repositorio](https://github.com/malopez1578/tita-cli/tags).
 
 ## 📝 Changelog
 
@@ -278,7 +278,7 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](L
 
 ## 👥 Autores
 
-- **Tu Nombre** - *Trabajo inicial* - [tu-username](https://github.com/tu-username)
+- **Tu Nombre** - *Trabajo inicial* - [malopez1578](https://github.com/malopez1578)
 
 ## 🙏 Agradecimientos
 
@@ -288,7 +288,7 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](L
 
 ## 🐛 Reportar Bugs
 
-Si encuentras un bug, por favor abre un [issue](https://github.com/tu-username/tita-cli/issues) con:
+Si encuentras un bug, por favor abre un [issue](https://github.com/malopez1578/tita-cli/issues) con:
 - Descripción detallada del problema
 - Pasos para reproducir
 - Versión del CLI y Node.js
@@ -296,4 +296,4 @@ Si encuentras un bug, por favor abre un [issue](https://github.com/tu-username/t
 
 ## 💡 Solicitar Features
 
-Para solicitar nuevas características, abre un [issue](https://github.com/tu-username/tita-cli/issues) con la etiqueta "enhancement".
+Para solicitar nuevas características, abre un [issue](https://github.com/malopez1578/tita-cli/issues) con la etiqueta "enhancement".
