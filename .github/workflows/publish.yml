@@ -1,6 +1,8 @@
 name: 📦 Publish to NPM
 
 on:
+  push:
+    branches: [main]
   release:
     types: [published]
   workflow_dispatch:
@@ -73,7 +75,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           tag_name: v${{ steps.package-info.outputs.version }}
           release_name: 🚀 Release v${{ steps.package-info.outputs.version }}
