@@ -1,0 +1,79 @@
+{
+  "name": "@malopez1578/tita-cli",
+  "version": "1.1.0",
+  "description": "CLI for creating projects from GitLab templates with automatic dependency installation",
+  "main": "dist/src/index.js",
+  "bin": {
+    "tita": "dist/src/index.js"
+  },
+  "files": [
+    "dist/**/*",
+    "constants/**/*",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run clean && npm run build && npm run test",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/src/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "link-global": "npm link",
+    "unlink-global": "npm unlink -g @malopez1578/tita-cli",
+    "clean": "rm -rf dist coverage"
+  },
+  "keywords": [
+    "cli",
+    "template",
+    "gitlab",
+    "vtex",
+    "component",
+    "generator",
+    "boilerplate",
+    "scaffold",
+    "yarn",
+    "typescript"
+  ],
+  "author": {
+    "name": "Tu Nombre",
+    "email": "tu-email@example.com",
+    "url": "https://github.com/malopez1578"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/malopez1578/tita-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/malopez1578/tita-cli/issues"
+  },
+  "homepage": "https://github.com/malopez1578/tita-cli#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "figlet": "^1.8.1",
+    "inquirer": "^12.6.3",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/figlet": "^1.7.0",
+    "@types/inquirer": "^9.0.8",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.15.30",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
