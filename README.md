@@ -278,7 +278,7 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](L
 
 ## 👥 Autores
 
-- **Tu Nombre** - *Trabajo inicial* - [malopez1578](https://github.com/malopez1578)
+- **Miguel López** - *Trabajo inicial* - [malopez1578](https://github.com/malopez1578)
 
 ## 🙏 Agradecimientos
 
