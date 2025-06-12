@@ -56,7 +56,9 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: 🏷️ Auto-bump version (on push to main)
-        if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'chore: bump version')
+        if: >-
+          github.event_name == 'push' &&
+          !contains(github.event.head_commit.message, 'chore: bump version')
         run: |
           npm version patch --no-git-tag-version
           git add package.json
