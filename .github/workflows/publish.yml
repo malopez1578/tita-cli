@@ -1,0 +1,159 @@
+name: 📦 Publish to NPM
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty for current)'
+        required: false
+        default: ''
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+    
+    steps:
+      - name: 🔄 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📦 Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: 🔧 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests
+        run: npm test
+
+      - name: 🔨 Build project
+        run: npm run build
+
+      - name: 📝 Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 🏷️ Auto-bump version (on push to main)
+        if: github.event_name == 'push' && !contains(github.event.head_commit.message, 'chore: bump version')
+        run: |
+          npm version patch --no-git-tag-version
+          git add package.json
+          git commit -m "chore: bump version to $(node -p 'require(\"./package.json\").version') [skip ci]"
+          git push
+
+      - name: 🏷️ Bump version (if manual trigger)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          git add package.json
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }} [skip ci]"
+          git push
+
+      - name: 🚀 Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: 📊 Get package info
+        id: package-info
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: 📢 Create GitHub Release (if manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.package-info.outputs.version }}
+          release_name: 🚀 Release v${{ steps.package-info.outputs.version }}
+          body: |
+            ## 📦 TITA CLI v${{ steps.package-info.outputs.version }}
+            
+            ### 🎉 What's New
+            - Performance optimizations
+            - Bug fixes and improvements
+            - Enhanced user experience
+            
+            ### 📋 Installation
+            ```bash
+            npm install -g ${{ steps.package-info.outputs.name }}
+            ```
+            
+            ### 🔗 Links
+            - 📦 [NPM Package](https://www.npmjs.com/package/${{ steps.package-info.outputs.name }})
+            - 📚 [Documentation](https://github.com/${{ github.repository }})
+            - 🐛 [Report Issues](https://github.com/${{ github.repository }}/issues)
+          draft: false
+          prerelease: false
+
+      - name: 💬 Comment on related issues
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.package-info.outputs.version }}';
+            const packageName = '${{ steps.package-info.outputs.name }}';
+            
+            // Find issues with 'pending-release' label
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'pending-release',
+              state: 'closed'
+            });
+            
+            // Comment on each issue
+            for (const issue of issues.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `🎉 This issue has been resolved in version **v${version}**!\n\n📦 **Install the latest version:**\n\`\`\`bash\nnpm install -g ${packageName}\n\`\`\``
+              });
+              
+              // Remove pending-release label
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'pending-release'
+              });
+            }
+
+  notify:
+    needs: publish
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+      - name: 📢 Notify success
+        run: |
+          echo "🎉 Successfully published TITA CLI to NPM!"
+          echo "📦 Package: @malopez1578/tita-cli"
+          echo "🔗 NPM: https://www.npmjs.com/package/@malopez1578/tita-cli"
