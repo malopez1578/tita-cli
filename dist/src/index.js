@@ -122,34 +122,6 @@ class TitaCLI {
         const answers = await inquirer_1.default.prompt([
             {
                 type: 'input',
-                name: 'name',
-                message: 'Enter project name:',
-                validate: (input) => {
-                    try {
-                        validation_1.ValidationUtils.validateProjectName(input);
-                        return true;
-                    }
-                    catch (error) {
-                        return error.message;
-                    }
-                }
-            },
-            {
-                type: 'input',
-                name: 'description',
-                message: 'Enter project description:',
-                validate: (input) => {
-                    try {
-                        validation_1.ValidationUtils.validateDescription(input);
-                        return true;
-                    }
-                    catch (error) {
-                        return error.message;
-                    }
-                }
-            },
-            {
-                type: 'input',
                 name: 'version',
                 message: 'Enter initial version:',
                 default: '1.0.0',
@@ -180,8 +152,6 @@ class TitaCLI {
             }
         ]);
         return {
-            name: answers.name,
-            description: answers.description,
             version: answers.version,
             targetDirectory: answers.targetDirectory
         };
@@ -347,10 +317,9 @@ class TitaCLI {
             const template = await this.selectTemplate();
             const projectDetails = await this.getProjectDetails();
             const vendorInfo = await this.getVendorInfo();
-            const componentInfo = await this.getComponentInfo(projectDetails.name);
+            const componentInfo = await this.getComponentInfo();
             // Use project name as component name
-            componentInfo.name = projectDetails.name;
-            const projectPath = path.resolve(projectDetails.targetDirectory, projectDetails.name);
+            const projectPath = path.resolve(projectDetails.targetDirectory, componentInfo.name);
             // Check if directory already exists
             if (fs.existsSync(projectPath)) {
                 const overwrite = await this.confirmAction(`Directory "${projectPath}" already exists. Do you want to overwrite it?`);
@@ -390,7 +359,7 @@ class TitaCLI {
             await this.commandExecutor.gitInit(projectPath);
             // Add template to preferred if successful
             configManager.addPreferredTemplate(template.name);
-            this.context.logger.success(`\n🎉 Project "${projectDetails.name}" created successfully!`);
+            this.context.logger.success(`\n🎉 Project "${componentInfo.name}" created successfully!`);
             this.context.logger.info(`📁 Location: ${projectPath}`);
             this.context.logger.info('🚀 Your project is ready to use!');
         }

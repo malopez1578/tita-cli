@@ -122,7 +122,7 @@ class CommandExecutor {
     async yarnInstall(projectDir, silent = true) {
         await this.ensurePrerequisite('yarn');
         try {
-            await this.execute('yarn install', {
+            await this.execute('yarn && yarn prepare', {
                 cwd: projectDir,
                 silent
             });
@@ -131,7 +131,7 @@ class CommandExecutor {
             }
         }
         catch (error) {
-            throw new errors_1.CommandExecutionError('yarn install', 1, {
+            throw new errors_1.CommandExecutionError('yarn', 1, {
                 projectDir,
                 originalError: error
             });

@@ -12,8 +12,6 @@ export interface UserConfig {
     logLevel?: LogLevel;
 }
 export interface ProjectDetails {
-    name: string;
-    description: string;
     version: string;
     targetDirectory: string;
 }
