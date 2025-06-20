@@ -162,7 +162,7 @@ export class CommandExecutor {
     await this.ensurePrerequisite('yarn');
 
     try {
-      await this.execute('yarn install', {
+      await this.execute('yarn && yarn prepare', {
         cwd: projectDir,
         silent
       });
@@ -171,7 +171,7 @@ export class CommandExecutor {
         this.logger.success('Dependencies installed successfully');
       }
     } catch (error) {
-      throw new CommandExecutionError('yarn install', 1, {
+      throw new CommandExecutionError('yarn', 1, {
         projectDir,
         originalError: error
       });

@@ -15,8 +15,6 @@ export interface UserConfig {
 }
 
 export interface ProjectDetails {
-  name: string;
-  description: string;
   version: string;
   targetDirectory: string;
 }
