@@ -33,12 +33,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs = __importStar(require("fs"));
+const os = __importStar(require("os"));
+const path = __importStar(require("path"));
+const types_1 = require("../src/types");
 const logger_1 = require("../src/utils/logger");
 const update_checker_1 = require("../src/utils/update-checker");
-const types_1 = require("../src/types");
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
-const os = __importStar(require("os"));
 describe('UpdateChecker', () => {
     let updateChecker;
     let mockCommandExecutor;
@@ -66,19 +66,19 @@ describe('UpdateChecker', () => {
         it('should detect when update is available', async () => {
             // Mock npm view command to return newer version
             mockCommandExecutor.execute.mockResolvedValue({
-                stdout: '1.2.0',
+                stdout: '1.3.0', // Higher than current 1.2.0
                 stderr: '',
                 exitCode: 0
             });
             const updateInfo = await updateChecker.checkForUpdates(false);
             expect(updateInfo.hasUpdate).toBe(true);
-            expect(updateInfo.latestVersion).toBe('1.2.0');
+            expect(updateInfo.latestVersion).toBe('1.3.0');
             expect(updateInfo.updateCommand).toContain('@malopez1578/tita-cli@latest');
         });
         it('should handle when no update is available', async () => {
             // Mock npm view command to return same version
             mockCommandExecutor.execute.mockResolvedValue({
-                stdout: '1.1.9', // Using current version from package.json
+                stdout: '1.2.0', // Same as current version in package.json
                 stderr: '',
                 exitCode: 0
             });
@@ -113,8 +113,8 @@ describe('UpdateChecker', () => {
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             const updateInfo = {
                 hasUpdate: false,
-                currentVersion: '1.1.9', // Using current version
-                latestVersion: '1.1.9',
+                currentVersion: '1.2.0', // Using current version
+                latestVersion: '1.2.0',
                 updateCommand: 'npm install -g @malopez1578/tita-cli@latest'
             };
             updateChecker.displayUpdateNotification(updateInfo);
@@ -125,8 +125,8 @@ describe('UpdateChecker', () => {
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
             const updateInfo = {
                 hasUpdate: true,
-                currentVersion: '1.1.9', // Using current version
-                latestVersion: '1.2.0',
+                currentVersion: '1.2.0', // Using current version
+                latestVersion: '1.3.0',
                 updateCommand: 'npm install -g @malopez1578/tita-cli@latest'
             };
             updateChecker.displayUpdateNotification(updateInfo);

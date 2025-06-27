@@ -1,5 +1,5 @@
-import { CommandExecutor } from './command';
 import { Logger } from '../types';
+import { CommandExecutor } from './command';
 export interface UpdateInfo {
     hasUpdate: boolean;
     currentVersion: string;

@@ -12,6 +12,9 @@ describe('UpdateChecker', () => {
   let logger: ConsoleLogger;
   let tempCacheDir: string;
 
+  // Static test data to avoid dependency on actual package.json version
+  const MOCK_CURRENT_VERSION = '1.0.0';
+
   beforeEach(() => {
     // Create temporary cache directory
     tempCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tita-test-'));
@@ -30,6 +33,9 @@ describe('UpdateChecker', () => {
       tempCacheDir,
       '@malopez1578/tita-cli'
     );
+
+    // Mock the getCurrentVersion method to return static test data
+    jest.spyOn(updateChecker as any, 'getCurrentVersion').mockReturnValue(MOCK_CURRENT_VERSION);
   });
 
   afterEach(() => {
@@ -43,7 +49,7 @@ describe('UpdateChecker', () => {
     it('should detect when update is available', async () => {
       // Mock npm view command to return newer version
       mockCommandExecutor.execute.mockResolvedValue({
-        stdout: '1.2.0',
+        stdout: '1.1.0', // Higher than mock current version 1.0.0
         stderr: '',
         exitCode: 0
       });
@@ -51,14 +57,15 @@ describe('UpdateChecker', () => {
       const updateInfo = await updateChecker.checkForUpdates(false);
       
       expect(updateInfo.hasUpdate).toBe(true);
-      expect(updateInfo.latestVersion).toBe('1.2.0');
+      expect(updateInfo.currentVersion).toBe(MOCK_CURRENT_VERSION);
+      expect(updateInfo.latestVersion).toBe('1.1.0');
       expect(updateInfo.updateCommand).toContain('@malopez1578/tita-cli@latest');
     });
 
     it('should handle when no update is available', async () => {
       // Mock npm view command to return same version
       mockCommandExecutor.execute.mockResolvedValue({
-        stdout: '1.1.9', // Using current version from package.json
+        stdout: '1.0.0', // Same as mock current version
         stderr: '',
         exitCode: 0
       });
@@ -66,6 +73,7 @@ describe('UpdateChecker', () => {
       const updateInfo = await updateChecker.checkForUpdates(false);
       
       expect(updateInfo.hasUpdate).toBe(false);
+      expect(updateInfo.currentVersion).toBe(MOCK_CURRENT_VERSION);
       expect(updateInfo.currentVersion).toBe(updateInfo.latestVersion);
     });
 
@@ -76,13 +84,14 @@ describe('UpdateChecker', () => {
       const updateInfo = await updateChecker.checkForUpdates(false);
       
       expect(updateInfo.hasUpdate).toBe(false);
-      expect(updateInfo.currentVersion).toBeDefined();
+      expect(updateInfo.currentVersion).toBe(MOCK_CURRENT_VERSION);
+      expect(updateInfo.latestVersion).toBe(MOCK_CURRENT_VERSION); // Should fallback to current
     });
 
     it('should use cached results when available', async () => {
       // First call - should execute npm command
       mockCommandExecutor.execute.mockResolvedValue({
-        stdout: '1.2.0',
+        stdout: '1.0.0', // Same as mock current version
         stderr: '',
         exitCode: 0
       });
@@ -95,6 +104,30 @@ describe('UpdateChecker', () => {
       expect(mockCommandExecutor.execute).toHaveBeenCalledTimes(1); // Still only called once
       
       expect(firstResult).toEqual(secondResult);
+      expect(firstResult.currentVersion).toBe(MOCK_CURRENT_VERSION);
+    });
+
+    it('should work with different version formats', async () => {
+      // Test with different semantic version formats that are clearly newer or same
+      const testVersions = [
+        { remote: '2.0.0', expectUpdate: true, description: 'major version bump' },
+        { remote: '1.0.1', expectUpdate: true, description: 'patch version bump' },
+        { remote: '1.1.0', expectUpdate: true, description: 'minor version bump' },
+        { remote: '0.9.9', expectUpdate: false, description: 'older version' }
+      ];
+
+      for (const testCase of testVersions) {
+        mockCommandExecutor.execute.mockResolvedValue({
+          stdout: testCase.remote,
+          stderr: '',
+          exitCode: 0
+        });
+
+        const result = await updateChecker.checkForUpdates(false);
+        expect(result.hasUpdate).toBe(testCase.expectUpdate);
+        expect(result.currentVersion).toBe(MOCK_CURRENT_VERSION);
+        expect(result.latestVersion).toBe(testCase.remote);
+      }
     });
   });
 
@@ -104,8 +137,8 @@ describe('UpdateChecker', () => {
       
       const updateInfo = {
         hasUpdate: false,
-        currentVersion: '1.1.9', // Using current version
-        latestVersion: '1.1.9',
+        currentVersion: MOCK_CURRENT_VERSION,
+        latestVersion: MOCK_CURRENT_VERSION,
         updateCommand: 'npm install -g @malopez1578/tita-cli@latest'
       };
 
@@ -120,8 +153,8 @@ describe('UpdateChecker', () => {
       
       const updateInfo = {
         hasUpdate: true,
-        currentVersion: '1.1.9', // Using current version
-        latestVersion: '1.2.0',
+        currentVersion: MOCK_CURRENT_VERSION,
+        latestVersion: '1.1.0',
         updateCommand: 'npm install -g @malopez1578/tita-cli@latest'
       };
 
