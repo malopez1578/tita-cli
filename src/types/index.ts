@@ -24,7 +24,6 @@ export interface VendorInfo {
 }
 
 export interface ComponentInfo {
-  name: string;
   title: string;
   description: string;
 }

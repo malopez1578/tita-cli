@@ -162,7 +162,7 @@ export class CommandExecutor {
     await this.ensurePrerequisite('yarn');
 
     try {
-      await this.execute('yarn && yarn prepare', {
+      await this.execute('yarn', {
         cwd: projectDir,
         silent
       });

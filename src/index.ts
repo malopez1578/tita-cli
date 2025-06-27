@@ -192,10 +192,12 @@ class TitaCLI {
         name: 'title',
         message: 'Enter component title:',
         validate: (input: string) => {
-          if (!input.trim()) {
-            return 'Component title cannot be empty';
+          try {
+            ValidationUtils.validateProjectName(input);
+            return true;
+          } catch (error) {
+            return (error as ValidationError).message;
           }
-          return true;
         }
       },
       {
@@ -212,7 +214,6 @@ class TitaCLI {
     ]);
 
     return {
-      name: defaultName ?? '',
       title: answers.title,
       description: answers.description
     };
@@ -269,7 +270,7 @@ class TitaCLI {
       
       // Update manifest fields
       manifest.vendor = vendor;
-      manifest.name = componentInfo.name;
+      manifest.name = componentInfo.title;
       manifest.title = componentInfo.title;
       manifest.description = componentInfo.description;
       
@@ -285,7 +286,7 @@ class TitaCLI {
       
       this.context.logger.info(`Manifest updated:`);
       this.context.logger.info(`  • Vendor: ${vendor}`);
-      this.context.logger.info(`  • Name: ${componentInfo.name}`);
+      this.context.logger.info(`  • Name: ${componentInfo.title}`);
       this.context.logger.info(`  • Title: ${componentInfo.title}`);
       this.context.logger.info(`  • Description: ${componentInfo.description}`);
     } catch (error) {
@@ -339,7 +340,7 @@ class TitaCLI {
       
       // Use project name as component name
       
-      const projectPath = path.resolve(projectDetails.targetDirectory, componentInfo.name);
+      const projectPath = path.resolve(projectDetails.targetDirectory, componentInfo.title);
       
       // Check if directory already exists
       if (fs.existsSync(projectPath)) {
@@ -388,7 +389,7 @@ class TitaCLI {
       // Add template to preferred if successful
       configManager.addPreferredTemplate(template.name);
       
-      this.context.logger.success(`\n🎉 Project "${componentInfo.name}" created successfully!`);
+      this.context.logger.success(`\n🎉 Project "${componentInfo.title}" created successfully!`);
       this.context.logger.info(`📁 Location: ${projectPath}`);
       this.context.logger.info('🚀 Your project is ready to use!');
       
