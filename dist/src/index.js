@@ -58,6 +58,7 @@ const fast_file_finder_1 = require("./utils/fast-file-finder");
 const optimized_cloner_1 = require("./utils/optimized-cloner");
 const parallel_installer_1 = require("./utils/parallel-installer");
 const smart_cache_1 = require("./utils/smart-cache");
+const update_checker_1 = require("./utils/update-checker");
 const program = new commander_1.Command();
 // Initialize global services
 const configManager = config_1.ConfigManager.getInstance();
@@ -70,6 +71,7 @@ const optimizedCloner = new optimized_cloner_1.OptimizedCloner(commandExecutor, 
 const smartCache = new smart_cache_1.SmartCache(logger, optimizedCloner);
 const parallelInstaller = new parallel_installer_1.ParallelInstaller(commandExecutor, logger);
 const fastFileFinder = new fast_file_finder_1.FastFileFinder();
+const updateChecker = new update_checker_1.UpdateChecker(commandExecutor, logger, configManager.getCacheDirectory());
 // Convert URL_TEMPLATES to TemplateConfig format
 const templates = Object.entries(templates_1.URL_TEMPLATES).map(([name, url]) => ({
     name,
@@ -90,6 +92,19 @@ class TitaCLI {
     showBanner() {
         console.log(chalk_1.default.cyan(figlet_1.default.textSync('TITA CLI', { horizontalLayout: 'full' })));
         console.log(chalk_1.default.gray('CLI for creating projects from GitLab templates\n'));
+    }
+    async checkForUpdatesIfNeeded() {
+        try {
+            // Check for updates silently in the background (using cache)
+            const updateInfo = await updateChecker.checkForUpdates(true);
+            if (updateInfo.hasUpdate) {
+                updateChecker.displayUpdateNotification(updateInfo);
+            }
+        }
+        catch (error) {
+            // Silently fail - update checks shouldn't interrupt the main workflow
+            this.context.logger.debug(`Update check failed: ${error}`);
+        }
     }
     async selectTemplate() {
         const preferredTemplates = this.context.config.preferredTemplates || [];
@@ -199,10 +214,13 @@ class TitaCLI {
                 name: 'title',
                 message: 'Enter component title:',
                 validate: (input) => {
-                    if (!input.trim()) {
-                        return 'Component title cannot be empty';
+                    try {
+                        validation_1.ValidationUtils.validateProjectName(input);
+                        return true;
                     }
-                    return true;
+                    catch (error) {
+                        return error.message;
+                    }
                 }
             },
             {
@@ -218,7 +236,6 @@ class TitaCLI {
             }
         ]);
         return {
-            name: defaultName ?? '',
             title: answers.title,
             description: answers.description
         };
@@ -260,7 +277,7 @@ class TitaCLI {
             const manifest = JSON.parse(manifestContent);
             // Update manifest fields
             manifest.vendor = vendor;
-            manifest.name = componentInfo.name;
+            manifest.name = componentInfo.title;
             manifest.title = componentInfo.title;
             manifest.description = componentInfo.description;
             if (projectDetails?.version) {
@@ -272,7 +289,7 @@ class TitaCLI {
             spinner.succeed(chalk_1.default.green(`Component info updated in ${relativePath}`));
             this.context.logger.info(`Manifest updated:`);
             this.context.logger.info(`  • Vendor: ${vendor}`);
-            this.context.logger.info(`  • Name: ${componentInfo.name}`);
+            this.context.logger.info(`  • Name: ${componentInfo.title}`);
             this.context.logger.info(`  • Title: ${componentInfo.title}`);
             this.context.logger.info(`  • Description: ${componentInfo.description}`);
         }
@@ -319,7 +336,7 @@ class TitaCLI {
             const vendorInfo = await this.getVendorInfo();
             const componentInfo = await this.getComponentInfo();
             // Use project name as component name
-            const projectPath = path.resolve(projectDetails.targetDirectory, componentInfo.name);
+            const projectPath = path.resolve(projectDetails.targetDirectory, componentInfo.title);
             // Check if directory already exists
             if (fs.existsSync(projectPath)) {
                 const overwrite = await this.confirmAction(`Directory "${projectPath}" already exists. Do you want to overwrite it?`);
@@ -359,7 +376,7 @@ class TitaCLI {
             await this.commandExecutor.gitInit(projectPath);
             // Add template to preferred if successful
             configManager.addPreferredTemplate(template.name);
-            this.context.logger.success(`\n🎉 Project "${componentInfo.name}" created successfully!`);
+            this.context.logger.success(`\n🎉 Project "${componentInfo.title}" created successfully!`);
             this.context.logger.info(`📁 Location: ${projectPath}`);
             this.context.logger.info('🚀 Your project is ready to use!');
         }
@@ -420,6 +437,8 @@ program
     .command('create')
     .description('Create a new project from a template')
     .action(async () => {
+    // Check for updates silently before starting
+    await cli['checkForUpdatesIfNeeded']();
     await cli.createProject();
 });
 program
@@ -554,6 +573,18 @@ program
     }
     else {
         console.log(chalk_1.default.yellow('Please specify an option: --stats, --clean, --optimize, or --clear-all'));
+    }
+});
+program
+    .command('update')
+    .description('Check for CLI updates')
+    .option('--check', 'Check for updates without installing')
+    .action(async (options) => {
+    if (options.check) {
+        await updateChecker.showUpdateInfo();
+    }
+    else {
+        await updateChecker.showUpdateInfo();
     }
 });
 // Parse command line arguments

@@ -33,6 +33,7 @@ import { FastFileFinder } from './utils/fast-file-finder';
 import { OptimizedCloner } from './utils/optimized-cloner';
 import { ParallelInstaller } from './utils/parallel-installer';
 import { SmartCache } from './utils/smart-cache';
+import { UpdateChecker } from './utils/update-checker';
 
 const program = new Command();
 
@@ -48,6 +49,7 @@ const optimizedCloner = new OptimizedCloner(commandExecutor, logger);
 const smartCache = new SmartCache(logger, optimizedCloner);
 const parallelInstaller = new ParallelInstaller(commandExecutor, logger);
 const fastFileFinder = new FastFileFinder();
+const updateChecker = new UpdateChecker(commandExecutor, logger, configManager.getCacheDirectory());
 
 // Convert URL_TEMPLATES to TemplateConfig format
 const templates: TemplateConfig[] = Object.entries(URL_TEMPLATES).map(([name, url]) => ({
@@ -74,6 +76,19 @@ class TitaCLI {
   private showBanner(): void {
     console.log(chalk.cyan(figlet.textSync('TITA CLI', { horizontalLayout: 'full' })));
     console.log(chalk.gray('CLI for creating projects from GitLab templates\n'));
+  }
+
+  private async checkForUpdatesIfNeeded(): Promise<void> {
+    try {
+      // Check for updates silently in the background (using cache)
+      const updateInfo = await updateChecker.checkForUpdates(true);
+      if (updateInfo.hasUpdate) {
+        updateChecker.displayUpdateNotification(updateInfo);
+      }
+    } catch (error) {
+      // Silently fail - update checks shouldn't interrupt the main workflow
+      this.context.logger.debug(`Update check failed: ${error}`);
+    }
   }
 
   private async selectTemplate(): Promise<TemplateConfig> {
@@ -457,6 +472,8 @@ program
   .command('create')
   .description('Create a new project from a template')
   .action(async () => {
+    // Check for updates silently before starting
+    await cli['checkForUpdatesIfNeeded']();
     await cli.createProject();
   });
 
@@ -587,6 +604,18 @@ program
       
     } else {
       console.log(chalk.yellow('Please specify an option: --stats, --clean, --optimize, or --clear-all'));
+    }
+  });
+
+program
+  .command('update')
+  .description('Check for CLI updates')
+  .option('--check', 'Check for updates without installing')
+  .action(async (options) => {
+    if (options.check) {
+      await updateChecker.showUpdateInfo();
+    } else {
+      await updateChecker.showUpdateInfo();
     }
   });
 

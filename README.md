@@ -24,6 +24,7 @@ Una herramienta de línea de comandos profesional para crear proyectos desde tem
 - **🛡️ Validación robusta** - Protección contra errores comunes
 - **🔧 Gestión de errores avanzada** - Mensajes de error útiles y accionables
 - **📊 Estadísticas de caché** - Monitoreo del uso y rendimiento
+- **🔄 Verificación automática de actualizaciones** - Notificaciones inteligentes de nuevas versiones
 
 ### 🚀 **Optimizaciones de Rendimiento** ⚡
 - **🔄 Clonado Shallow** - Clonación hasta 10x más rápida usando `--depth=1`
@@ -127,6 +128,10 @@ tita perf --stats               # Ver estadísticas de rendimiento
 tita perf --clean               # Limpiar caché antiguo (>7 días)
 tita perf --optimize            # Optimizar caché completo
 tita perf --clear-all           # Limpiar todo el caché
+
+# Verificación de actualizaciones 🔄
+tita update                     # Verificar si hay nuevas versiones disponibles
+tita update --check             # Verificar actualizaciones explícitamente
 ```
 
 ### Opciones del comando create
@@ -262,6 +267,54 @@ yarn build
 
 # Limpiar archivos compilados
 yarn clean
+```
+
+## 🔄 Sistema de Actualizaciones
+
+TITA CLI incluye un **sistema inteligente de verificación de actualizaciones** que te mantiene al día con las últimas mejoras y correcciones.
+
+### 🚀 **Características del Sistema de Actualizaciones**
+
+- **Verificación automática** al ejecutar `tita create`
+- **Caché inteligente** - Verifica una vez cada 24 horas
+- **Notificaciones no intrusivas** - Solo muestra cuando hay actualizaciones disponibles
+- **Comandos de instalación** - Proporciona comandos específicos para actualizar
+- **Compatibilidad total** - Funciona con npm y yarn
+
+### 📋 **Comandos de Actualización**
+
+```bash
+# Verificar actualizaciones manualmente
+tita update
+
+# Verificar actualizaciones explícitamente (fuerza verificación)
+tita update --check
+```
+
+### 🎯 **Cómo Funciona**
+
+1. **Verificación silenciosa** - Se ejecuta en segundo plano durante `tita create`
+2. **Caché de 24 horas** - Evita verificaciones excesivas
+3. **Notificación visual** - Muestra un banner atractivo cuando hay actualizaciones
+4. **Comandos de ejemplo** - Proporciona comandos listos para copiar y pegar
+
+### 📱 **Ejemplo de Notificación**
+
+Cuando hay una actualización disponible, verás algo como esto:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  🔔 Nueva versión disponible!                       │
+│                                                     │
+│  Versión actual: 1.1.8                             │
+│  Última versión: 1.2.0                             │
+│                                                     │
+│  Para actualizar, ejecuta:                          │
+│  npm install -g @malopez1578/tita-cli@latest       │
+│                                                     │
+│  Alternativamente con yarn:                         │
+│  yarn global add @malopez1578/tita-cli@latest      │
+└─────────────────────────────────────────────────────┘
 ```
 
 ## 🔄 Versionado

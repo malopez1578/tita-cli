@@ -5,40 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-06-09
+## [1.2.0] - 2025-06-27
 
 ### Added
-- Initial release of TITA CLI
-- Template cloning from GitLab repositories
-- Automatic dependency installation with Yarn
-- Interactive project creation with `tita init`
-- Direct project creation with `tita create`
-- Template management with `tita add-template`
-- Automatic manifest.json configuration
-- Component information setup (vendor, name, title, description)
-- Recursive package.json detection and installation
-- Git repository initialization with clean history
-- Modern CLI interface with colors and spinners
-- Comprehensive error handling and user feedback
+- **Sistema de Verificación de Actualizaciones**: Nuevo sistema inteligente para verificar versiones
+  - Verificación automática al ejecutar `tita create`
+  - Caché de 24 horas para evitar verificaciones excesivas
+  - Notificaciones visuales no intrusivas
+  - Comando `tita update` para verificación manual
+  - Comandos de instalación específicos para npm y yarn
+- **Nuevas Funcionalidades**:
+  - Verificación silenciosa en segundo plano
+  - Notificación visual atractiva con banner
+  - Gestión inteligente de errores de red
+  - Compatibilidad total con gestores de paquetes
 
-### Features
-- **Template Selection**: Choose from predefined GitLab templates
-- **Smart Naming**: Automatic component naming from project name
-- **Dependency Management**: Yarn installation in all subdirectories
-- **Manifest Configuration**: Automatic vendor and component info setup
-- **Git Integration**: Clean repository initialization with initial commit
-- **Interactive Mode**: Guided project creation with prompts
-- **CLI Options**: Direct command-line options for all parameters
-- **Template Management**: Add and manage custom templates
-- **Prerequisites Check**: Automatic verification of Git and Yarn
-
-### Supported Commands
-- `tita init` - Interactive project creation
-- `tita create <template> <project>` - Direct project creation
-- `tita list` - List available templates
-- `tita add-template` - Add new templates
-- `tita examples` - Show usage examples
-- `tita remove` - Interactive directory removal
+### Enhanced
+- **Experiencia de Usuario**: Mantiene a los usuarios actualizados con las últimas mejoras
+- **Rendimiento**: Verificación con caché para evitar llamadas excesivas a npm registry
+- **Robustez**: Manejo de errores que no interrumpe el flujo principal
 
 ## [1.1.0] - 2025-06-10
 
@@ -78,3 +63,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removido método obsoleto findPackageJsonFiles
 - Agregado soporte para métodos públicos en SmartCache
 - Tests actualizados para incluir nuevo método warning()
+
+## [1.0.0] - 2025-06-09
+
+### Added
+- Initial release of TITA CLI
+- Template cloning from GitLab repositories
+- Automatic dependency installation with Yarn
+- Interactive project creation with `tita init`
+- Direct project creation with `tita create`
+- Template management with `tita add-template`
+- Automatic manifest.json configuration
+- Component information setup (vendor, name, title, description)
+- Recursive package.json detection and installation
+- Git repository initialization with clean history
+- Modern CLI interface with colors and spinners
+- Comprehensive error handling and user feedback
+
+### Features
+- **Template Selection**: Choose from predefined GitLab templates
+- **Smart Naming**: Automatic component naming from project name
+- **Dependency Management**: Yarn installation in all subdirectories
+- **Manifest Configuration**: Automatic vendor and component info setup
+- **Git Integration**: Clean repository initialization with initial commit
+- **Interactive Mode**: Guided project creation with prompts
+- **CLI Options**: Direct command-line options for all parameters
+- **Template Management**: Add and manage custom templates
+- **Prerequisites Check**: Automatic verification of Git and Yarn
+
+### Supported Commands
+- `tita init` - Interactive project creation
+- `tita create <template> <project>` - Direct project creation
+- `tita list` - List available templates
+- `tita add-template` - Add new templates
+- `tita examples` - Show usage examples
+- `tita remove` - Interactive directory removal
