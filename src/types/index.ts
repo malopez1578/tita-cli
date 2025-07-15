@@ -26,6 +26,7 @@ export interface VendorInfo {
 export interface ComponentInfo {
   title: string;
   description: string;
+  author?: string;
 }
 
 export enum LogLevel {

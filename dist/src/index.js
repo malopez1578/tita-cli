@@ -208,7 +208,8 @@ class TitaCLI {
         return { vendor };
     }
     async getComponentInfo(defaultName) {
-        const answers = await inquirer_1.default.prompt([
+        const defaultAuthor = this.context.config.defaultAuthor;
+        const questions = [
             {
                 type: 'input',
                 name: 'title',
@@ -234,10 +235,41 @@ class TitaCLI {
                     return true;
                 }
             }
-        ]);
+        ];
+        // Ask for author if not configured
+        if (!defaultAuthor) {
+            questions.push({
+                type: 'input',
+                name: 'author',
+                message: 'Enter author name:',
+                validate: (input) => {
+                    if (!input.trim()) {
+                        return 'Author name cannot be empty';
+                    }
+                    return true;
+                }
+            });
+        }
+        const answers = await inquirer_1.default.prompt(questions);
+        // Save author as default if provided and not already configured
+        if (answers.author && !defaultAuthor) {
+            const { saveAuthorAsDefault } = await inquirer_1.default.prompt([
+                {
+                    type: 'confirm',
+                    name: 'saveAuthorAsDefault',
+                    message: 'Save this author as default for future projects?',
+                    default: true
+                }
+            ]);
+            if (saveAuthorAsDefault) {
+                configManager.setDefaultAuthor(answers.author);
+                this.context.logger.info('Author saved as default');
+            }
+        }
         return {
             title: answers.title,
-            description: answers.description
+            description: answers.description,
+            author: answers.author || defaultAuthor
         };
     }
     async installDependencies(projectPath) {
@@ -265,13 +297,46 @@ class TitaCLI {
         }
         return null;
     }
-    updateManifestInfo(projectPath, vendor, componentInfo, projectDetails) {
-        const manifestPath = this.findManifestFile(projectPath);
-        if (!manifestPath) {
-            this.context.logger.warn('No manifest.json file found. Skipping manifest update.');
-            return;
+    updateProjectFiles(projectPath, vendor, componentInfo, projectDetails) {
+        const spinner = (0, ora_1.default)('Updating project files...').start();
+        try {
+            let filesUpdated = [];
+            // Update manifest.json
+            const manifestPath = this.findManifestFile(projectPath);
+            if (manifestPath) {
+                this.updateManifestFile(manifestPath, vendor, componentInfo, projectDetails);
+                filesUpdated.push('manifest.json');
+            }
+            else {
+                this.context.logger.warn('No manifest.json file found. Skipping manifest update.');
+            }
+            // Update package.json
+            const packageJsonPath = this.findPackageJsonFile(projectPath);
+            if (packageJsonPath) {
+                this.updatePackageJsonFile(packageJsonPath, componentInfo, projectDetails);
+                filesUpdated.push('package.json');
+            }
+            else {
+                this.context.logger.warn('No package.json file found in project root. Skipping package.json update.');
+            }
+            // Create clean CHANGELOG.md
+            this.createCleanChangelog(projectPath, componentInfo, projectDetails);
+            filesUpdated.push('CHANGELOG.md');
+            spinner.succeed(chalk_1.default.green(`Project files updated: ${filesUpdated.join(', ')}`));
+            this.context.logger.info(`Project files updated:`);
+            this.context.logger.info(`  • Vendor: ${vendor}`);
+            this.context.logger.info(`  • Name: ${componentInfo.title}`);
+            this.context.logger.info(`  • Description: ${componentInfo.description}`);
+            if (projectDetails?.version) {
+                this.context.logger.info(`  • Version: ${projectDetails.version}`);
+            }
         }
-        const spinner = (0, ora_1.default)('Updating manifest.json...').start();
+        catch (error) {
+            spinner.fail(chalk_1.default.red('Failed to update project files'));
+            throw error;
+        }
+    }
+    updateManifestFile(manifestPath, vendor, componentInfo, projectDetails) {
         try {
             const manifestContent = fs.readFileSync(manifestPath, 'utf8');
             const manifest = JSON.parse(manifestContent);
@@ -285,17 +350,79 @@ class TitaCLI {
             }
             // Write back to file with proper formatting
             fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
-            const relativePath = path.relative(projectPath, manifestPath);
-            spinner.succeed(chalk_1.default.green(`Component info updated in ${relativePath}`));
-            this.context.logger.info(`Manifest updated:`);
-            this.context.logger.info(`  • Vendor: ${vendor}`);
-            this.context.logger.info(`  • Name: ${componentInfo.title}`);
-            this.context.logger.info(`  • Title: ${componentInfo.title}`);
-            this.context.logger.info(`  • Description: ${componentInfo.description}`);
         }
         catch (error) {
-            spinner.fail(chalk_1.default.red('Failed to update manifest.json'));
             throw new errors_1.ManifestError('update', manifestPath, error);
+        }
+    }
+    findPackageJsonFile(projectPath) {
+        const packageJsonPath = path.join(projectPath, 'package.json');
+        if (fs.existsSync(packageJsonPath)) {
+            return packageJsonPath;
+        }
+        return null;
+    }
+    updatePackageJsonFile(packageJsonPath, componentInfo, projectDetails) {
+        try {
+            const packageContent = fs.readFileSync(packageJsonPath, 'utf8');
+            const packageJson = JSON.parse(packageContent);
+            // Update package.json fields
+            packageJson.name = componentInfo.title.toLowerCase().replace(/\s+/g, '-');
+            packageJson.description = componentInfo.description;
+            if (projectDetails?.version) {
+                packageJson.version = projectDetails.version;
+            }
+            // Reset repository info to avoid confusion
+            if (packageJson.repository) {
+                delete packageJson.repository;
+            }
+            // Reset bugs url
+            if (packageJson.bugs) {
+                delete packageJson.bugs;
+            }
+            // Reset homepage
+            if (packageJson.homepage) {
+                delete packageJson.homepage;
+            }
+            // Update author
+            if (componentInfo.author) {
+                packageJson.author = componentInfo.author;
+            }
+            // Write back to file with proper formatting
+            fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+        }
+        catch (error) {
+            throw new Error(`Failed to update package.json: ${error}`);
+        }
+    }
+    createCleanChangelog(projectPath, componentInfo, projectDetails) {
+        const changelogPath = path.join(projectPath, 'CHANGELOG.md');
+        const version = projectDetails?.version || '1.0.0';
+        const today = new Date().toISOString().split('T')[0];
+        const changelogContent = `# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [${version}] - ${today}
+
+### Added
+- Initial release of ${componentInfo.title}
+- ${componentInfo.description}
+
+---
+
+## Template Information
+This project was created using TITA CLI from a GitLab template.
+Previous changelog history has been reset for a clean start.
+`;
+        try {
+            fs.writeFileSync(changelogPath, changelogContent);
+        }
+        catch (error) {
+            throw new Error(`Failed to create CHANGELOG.md: ${error}`);
         }
     }
     async confirmAction(message) {
@@ -368,8 +495,8 @@ class TitaCLI {
             this.copyDirectory(sourcePath, projectPath);
             // Clean git history
             await this.commandExecutor.removeGitHistory(projectPath);
-            // Update manifest
-            this.updateManifestInfo(projectPath, vendorInfo.vendor, componentInfo, projectDetails);
+            // Update project files (manifest.json, package.json, CHANGELOG.md)
+            this.updateProjectFiles(projectPath, vendorInfo.vendor, componentInfo, projectDetails);
             // Install dependencies
             await this.installDependencies(projectPath);
             // Initialize new git repository
@@ -495,6 +622,7 @@ program
     .option('--show', 'Show current configuration')
     .option('--reset', 'Reset configuration to defaults')
     .option('--set-vendor <vendor>', 'Set default vendor')
+    .option('--set-author <author>', 'Set default author')
     .option('--set-log-level <level>', 'Set log level (ERROR, WARN, INFO, DEBUG)')
     .action(async (options) => {
     if (options.show) {
@@ -513,6 +641,10 @@ program
         configManager.setDefaultVendor(options.setVendor);
         console.log(chalk_1.default.green(`✅ Default vendor set to: ${options.setVendor}`));
     }
+    else if (options.setAuthor) {
+        configManager.setDefaultAuthor(options.setAuthor);
+        console.log(chalk_1.default.green(`✅ Default author set to: ${options.setAuthor}`));
+    }
     else if (options.setLogLevel) {
         const level = types_1.LogLevel[options.setLogLevel.toUpperCase()];
         if (level !== undefined) {
@@ -524,7 +656,7 @@ program
         }
     }
     else {
-        console.log(chalk_1.default.yellow('Please specify an option: --show, --reset, --set-vendor, or --set-log-level'));
+        console.log(chalk_1.default.yellow('Please specify an option: --show, --reset, --set-vendor, --set-author, or --set-log-level'));
     }
 });
 program
@@ -579,13 +711,8 @@ program
     .command('update')
     .description('Check for CLI updates')
     .option('--check', 'Check for updates without installing')
-    .action(async (options) => {
-    if (options.check) {
-        await updateChecker.showUpdateInfo();
-    }
-    else {
-        await updateChecker.showUpdateInfo();
-    }
+    .action(async () => {
+    await updateChecker.showUpdateInfo();
 });
 // Parse command line arguments
 program.parse();

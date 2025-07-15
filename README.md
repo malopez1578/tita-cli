@@ -1,7 +1,12 @@
 # TITA CLI 🚀
 
 [![npm version](https://badge.fury.io/js/@malopez1578%2Ftita-cli.svg)](https://badge.fury.io/js/@malopez1578%2Ftita-cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.# Gestión de configuración
+tita config --show              # Mostrar configuración actual
+tita config --reset             # Resetear configuración
+tita config --set-vendor <vendor>   # Establecer vendor por defecto
+tita config --set-author <author>   # Establecer autor por defecto
+tita config --set-log-level <level> # Establecer nivel de logging(https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/malopez1578/tita-cli)
 [![TypeScript](https://img.shields.io/badge/typescript-5.8-blue.svg)](https://www.typescriptlang.org/)
 
@@ -98,7 +103,89 @@ yarn build
 yarn link-global
 ```
 
-## 📖 Uso
+## � ¿Qué hace TITA CLI al crear un proyecto?
+
+Cuando ejecutas `tita create`, la herramienta realiza una serie de operaciones para entregarte un proyecto completamente configurado:
+
+### 🔄 **Proceso de Creación**
+
+1. **📥 Clonación Inteligente**: Descarga el template desde GitLab usando caché inteligente
+2. **📝 Actualización de Archivos**: Configura automáticamente los archivos del proyecto
+3. **📦 Instalación**: Instala dependencias en paralelo con Yarn
+4. **📂 Inicialización Git**: Crea un repositorio Git limpio con commit inicial
+
+### 📄 **Archivos Actualizados Automáticamente**
+
+#### **manifest.json**
+```json
+{
+  "vendor": "tu.vendor",
+  "name": "mi-componente",
+  "title": "Mi Componente",
+  "description": "Descripción del componente",
+  "version": "1.0.0"
+}
+```
+
+#### **package.json**
+```json
+{
+  "name": "mi-componente",
+  "version": "1.0.0",
+  "description": "Descripción del componente",
+  "author": "Tu Nombre"
+}
+```
+*Nota: Se eliminan automáticamente los campos `repository`, `bugs` y `homepage` del template original.*
+
+#### **CHANGELOG.md** (Creado limpio)
+```markdown
+# Changelog
+
+## [1.0.0] - 2025-07-15
+
+### Added
+- Initial release of Mi Componente
+- Descripción del componente
+
+---
+
+## Template Information
+This project was created using TITA CLI from a GitLab template.
+Previous changelog history has been reset for a clean start.
+```
+
+## �📖 Uso
+
+### 🎮 **Modo Interactivo (Recomendado)**
+
+```bash
+# Crear proyecto con prompts inteligentes
+tita create
+```
+
+**El modo interactivo te guía paso a paso:**
+- ✅ Selección de template con favoritos primero
+- ✅ Configuración de versión inicial
+- ✅ Configuración de directorio destino  
+- ✅ Configuración de vendor (con opción de guardar como default)
+- ✅ Información del componente (título, descripción)
+- ✅ Configuración de autor (con opción de guardar como default)
+
+### 📝 **Configuración Previa (Opcional)**
+
+Para acelerar el proceso, puedes configurar valores por defecto:
+
+```bash
+# Configurar vendor por defecto
+tita config --set-vendor "miempresa.team"
+
+# Configurar autor por defecto  
+tita config --set-author "Mi Nombre"
+
+# Ver configuración actual
+tita config --show
+```
 
 ### Comandos disponibles
 
